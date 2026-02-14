@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Unsecure Social PWA{% endblock %}</title>
+
+  <!-- VULNERABILITY: No Content-Security-Policy header or meta tag.
+       Inline scripts, eval(), and external resource loading are all unrestricted.
+       A proper CSP would block XSS execution even if injection occurs. -->
+
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="manifest"   href="/static/manifest.json" />
+  <meta name="theme-color" content="#e94560" />
+  <link rel="icon" href="/static/icons/icon-192.png" type="image/png" />
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="brand">&#9733; SocialPWA</a>
+    <div class="nav-links">
+      <a href="/">Login</a>
+      <a href="/signup.html">Sign Up</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/messages">Messages</a>
+      <button id="install-btn" class="btn btn-sm">&#8627; Install App</button>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>
+      &copy; 2025 Unsecure Social PWA &mdash; For Educational Purposes Only &mdash;
+      <a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a>
+    </p>
+  </footer>
+
+  <!-- app.js loaded last so DOM is ready -->
+  <script src="/static/js/app.js"></script>
+
+</body>
+</html>

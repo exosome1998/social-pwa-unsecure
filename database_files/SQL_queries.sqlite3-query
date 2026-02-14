@@ -1,0 +1,32 @@
+-- database: ./database.db
+-- Use the ▷ button in the top right corner to run the entire file.
+-- Tip: Highlight a single query and press ▷ to run just that one.
+
+-- ── View all users (including plaintext passwords!) ──
+-- SELECT * FROM users;
+
+-- ── View all posts ──
+-- SELECT * FROM posts ORDER BY id DESC;
+
+-- ── View all direct messages ──
+-- SELECT * FROM messages;
+
+-- ── Find a specific user ──
+-- SELECT * FROM users WHERE username = 'admin';
+
+-- ── Classic SQL Injection payloads to try in the login box ──
+-- username: admin'--
+-- username: ' OR '1'='1
+-- password: ' OR '1'='1'--
+
+-- ── Reset posts to seed data only ──
+-- DELETE FROM posts WHERE id > 12;
+
+-- ── Reset messages to seed data only ──
+-- DELETE FROM messages WHERE id > 7;
+
+-- ── Remove all registered users (keep seeded accounts) ──
+-- DELETE FROM users WHERE id > 6;
+
+-- ── View full schema ──
+-- SELECT name, sql FROM sqlite_master WHERE type='table';

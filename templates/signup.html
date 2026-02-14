@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block title %}Sign Up — SocialPWA{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Join SocialPWA</h1>
+  <p class="subtitle">Create your free account. Takes less than a minute.</p>
+
+  {% if msg %}
+  <div class="msg-box" id="js-msg-box">{{ msg | safe }}</div>
+  {% else %}
+  <div id="js-msg-box" style="display:none;"></div>
+  {% endif %}
+
+  <!--
+    VULNERABILITY: No CSRF token — cross-site form submission is possible.
+    VULNERABILITY: No duplicate username check in the backend (insertUser).
+    VULNERABILITY: No password complexity requirements enforced anywhere.
+  -->
+  <form action="/signup.html" method="POST">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        placeholder="Choose a username"
+        required
+        autocomplete="username"
+        minlength="3"
+        maxlength="30"
+      />
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <!--
+        VULNERABILITY: Password stored in plaintext — no hashing.
+        There are no server-side strength requirements either.
+      -->
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Choose a password"
+        required
+        autocomplete="new-password"
+      />
+    </div>
+    <div class="form-group">
+      <label for="dob">Date of Birth</label>
+      <!--
+        VULNERABILITY: Date of birth stored as plain text alongside the plaintext password.
+        PII with no encryption at rest.
+      -->
+      <input
+        type="text"
+        id="dob"
+        name="dob"
+        placeholder="DD/MM/YYYY"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="bio">Bio <span class="text-muted">(optional)</span></label>
+      <textarea
+        id="bio"
+        name="bio"
+        placeholder="Tell the world about yourself..."
+        maxlength="200"
+      ></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Account</button>
+  </form>
+
+  <a href="/" class="btn btn-secondary">Already have an account? Log In</a>
+</div>
+{% endblock %}

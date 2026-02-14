@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+{% block title %}Feed — SocialPWA{% endblock %}
+
+{% block content %}
+<div class="feed-wrapper">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="feed-sidebar">
+    <div class="profile-card">
+      <div class="avatar">{{ username[0] | upper if username else '?' }}</div>
+      <div class="profile-username">{{ username }}</div>
+      <div class="profile-handle">@{{ username | lower }}</div>
+      <br/>
+      <div class="sidebar-links">
+        <a href="/profile?user={{ username }}">&#128100; My Profile</a>
+        <a href="/messages?user={{ username }}">&#128140; Messages</a>
+        <a href="/">&#128682; Log Out</a>
+      </div>
+    </div>
+
+    <div class="profile-card" style="font-size:0.82rem; text-align:left; color:var(--text-muted);">
+      <strong style="color:var(--text-light);">&#128202; Stats</strong><br/><br/>
+      <div>Posts in feed: {{ posts | length if posts else 0 }}</div>
+      <div class="mt-1">Logged in as: <span style="color:var(--accent);">{{ username }}</span></div>
+    </div>
+  </aside>
+
+  <!-- ── Feed Main ─────────────────────────────────────────────────────────── -->
+  <div class="feed-main">
+
+    {% if msg %}
+    <div class="msg-box mb-2" id="js-msg-box">{{ msg | safe }}</div>
+    {% else %}
+    <div id="js-msg-box" style="display:none;"></div>
+    {% endif %}
+
+    <!-- Compose Box -->
+    <!--
+      VULNERABILITY 1: No CSRF token — any site can POST to /feed.html on behalf of logged-in user.
+      VULNERABILITY 2: IDOR — 'username' is a hidden field the user controls.
+                        Changing it lets anyone post as 'admin' or any other user.
+      VULNERABILITY 3: No content length limit enforced server-side.
+    -->
+    <div class="compose-card">
+      <form action="/feed.html" method="POST">
+        <input type="hidden" name="username" value="{{ username }}" />
+        <div class="form-group" style="margin-bottom:0.6rem;">
+          <textarea
+            name="content"
+            placeholder="What's on your mind, {{ username }}? (Try posting some HTML...)"
+            required
+          ></textarea>
+        </div>
+        <div class="compose-footer">
+          <span class="text-muted" style="font-size:0.8rem;">No content filtering applied</span>
+          <button type="submit" class="btn btn-primary btn-sm" style="width:auto;">Post</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Posts -->
+    {% if posts %}
+      {% for post in posts %}
+      <div class="post-card">
+        <div class="post-header">
+          <div class="post-avatar">{{ post[1][0] | upper if post[1] else '?' }}</div>
+          <div>
+            <div class="post-author-name">
+              <a href="/profile?user={{ post[1] }}" style="color:var(--text-light);">{{ post[1] }}</a>
+            </div>
+            <div class="post-author-handle">@{{ post[1] | lower if post[1] else 'anonymous' }}</div>
+          </div>
+          {% if post[3] is defined and post[3] %}
+          <div class="post-timestamp">{{ post[3] }}</div>
+          {% endif %}
+        </div>
+        <!--
+          VULNERABILITY: Stored XSS
+          Post content is rendered with |safe — auto-escaping is disabled.
+          Any user can post <script>alert(document.cookie)</script> and it will
+          execute in the browser of EVERY user who loads the feed page.
+          The payload is permanently stored in the database.
+        -->
+        <div class="post-content">{{ post[2] | safe }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="post-card">
+        <p class="text-muted" style="text-align:center; padding:1rem 0;">
+          No posts yet. Be the first to post something!
+        </p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% block title %}Messages — SocialPWA{% endblock %}
+
+{% block content %}
+<div class="feed-wrapper">
+
+  <aside class="feed-sidebar">
+    <div class="profile-card">
+      <div class="avatar">{{ username[0] | upper if username else '?' }}</div>
+      <div class="profile-username">{{ username }}</div>
+      <div class="profile-handle">@{{ username | lower }}</div>
+      <br/>
+      <div class="sidebar-links">
+        <a href="/feed.html">&#128247; Feed</a>
+        <a href="/profile?user={{ username }}">&#128100; Profile</a>
+        <a href="/">&#128682; Log Out</a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="feed-main">
+    <div class="compose-card" style="margin-bottom:1.5rem;">
+      <h2 style="margin-bottom:1rem;">&#128140; Send a Message</h2>
+      <!--
+        VULNERABILITY: No CSRF token.
+        VULNERABILITY: 'sender' is a hidden field — easily spoofed to impersonate any user.
+        VULNERABILITY: No check that 'recipient' exists in the database.
+      -->
+      <form action="/messages" method="POST">
+        <input type="hidden" name="sender" value="{{ username }}" />
+        <div class="form-group">
+          <label for="recipient">To</label>
+          <input
+            type="text"
+            id="recipient"
+            name="recipient"
+            placeholder="Recipient username"
+            required
+            value="{{ recipient if recipient != username else '' }}"
+          />
+        </div>
+        <div class="form-group">
+          <label for="body">Message</label>
+          <!--
+            VULNERABILITY: Message body is rendered with |safe in the inbox view below.
+            Stored XSS via direct message — attacker can target a specific user.
+          -->
+          <textarea id="body" name="body" placeholder="Write your message..." required></textarea>
+        </div>
+        <div class="compose-footer">
+          <button type="submit" class="btn btn-primary btn-sm" style="width:auto;">Send</button>
+        </div>
+      </form>
+    </div>
+
+    <h2 style="margin-bottom:1rem;">
+      Inbox for
+      <!--
+        VULNERABILITY: Username from URL parameter rendered with |safe — reflected XSS.
+        /messages?user=<script>alert(1)</script>
+      -->
+      <span class="text-accent">{{ username | safe }}</span>
+    </h2>
+    <p class="text-muted mb-2" style="font-size:0.82rem;">
+      ⚠️  No authentication required to view this inbox — change the <code>?user=</code> parameter to read anyone's messages.
+    </p>
+
+    {% if messages %}
+      {% for msg in messages %}
+      <div class="message-card">
+        <div class="msg-meta">
+          From: <strong>{{ msg[1] }}</strong>
+          {% if msg[4] is defined and msg[4] %}
+          &mdash; <span>{{ msg[4] }}</span>
+          {% endif %}
+        </div>
+        <!--
+          VULNERABILITY: Stored XSS — message body rendered with |safe.
+          An attacker can send a message containing <script>alert(document.cookie)</script>
+          and it will execute when the recipient opens their inbox.
+        -->
+        <div class="msg-body">{{ msg[3] | safe }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="message-card">
+        <p class="text-muted" style="text-align:center; padding:0.5rem 0;">
+          No messages in this inbox yet.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
